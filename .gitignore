@@ -1,5 +1,6 @@
 libflowbox
 flowbox-ruby
 flowbox-rails
-applications
+applications/*
+!applications/README.md
 *~

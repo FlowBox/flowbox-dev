@@ -78,6 +78,10 @@ namespace :flowboxruby do
     system "cd flowbox-ruby && rake clean && rake clobber && rake"
   end
 end 
+namespace :applications do 
+
+end
+
 
 # We will use this method to add the rake files of the different applications
 # Dir.glob(File.join(File.dirname(__FILE__), '**', 'Rakefile')).each do |tasks|
