@@ -1,89 +1,182 @@
 #encoding: utf-8
-###############################################################################
-# FLOWBOX
+################################################################################
+# FlowBox
 ################################################################################
 #
 # Here we define some common task that will simplify your job
 #
-# http://jasonseifer.com/2010/04/06/rake-tutorial
-# http://en.wikipedia.org/wiki/Rake_%28software%29
-# http://docs.rubyrake.org/user_guide/chapter03.html
-# http://ruby.about.com/od/gosugme/ss/Embedding-Images-In-Gosu-Programs_3.htm
-#
+# Author: Dominik Schatzmann
 
+# HELPER -----------------------------------------------------------------------
+def git_status(path_r)
+  Dir.chdir(path_r) do
+    fill = 80 - path_r.size()
+    fill = 0 if fill < 0
+    puts path_r + '-'*fill
+    puts `git status`
+  end
+end
+
+# SYSTEM -----------------------------------------------------------------------
+namespace :system do 
+  task :requirements do 
+    throw "TODO"
+  end
+end
+
+# RVM --------------------------------------------------------------------------
+# FlowBox relies on ruby version manager (https://rvm.io)
 namespace :rvm do
-  desc 'build required ruby'
-  task :build do 
+  desc 'rvm requirements'
+  task :requirements do 
+    req_a = ['bash', 'awk', 'sed', 'grep']
+    req_a << ['which', 'ls', 'cp', 'tar']
+    req_a << ['curl', 'gunzip', 'bunzip2']
+    req_a << ['git', 'subversion']
+    req_a.each do |req|
+      req_p = `which #{req}`.strip()
+      throw 'rvm requires #{req}. Install it first (see https://rvm.io)' if req_p == nil
+    end
+  end
+  desc 'install rvm'
+  task :installation => [:requirements] do 
+    # 1) check rvm is not already installed
+    rvm_p = `which rvm`.strip()
+    if !(rvm_p =~ /home*rvm/)
+      throw 'rvm is already installed'
+    end
+    # 2) check we are NOT root (user-land installation)
+    throw 'rvm should be installed as non-root users' if Process.uid == 0
+    # 3) fetch and install rvm
+    `\curl -L https://get.rvm.io | bash -s stable --ruby`
+  end
+  desc 'build the required ruby'
+  task :ruby do 
     puts `rvm install $FLOWBOX_RUBY_CURRENT`
   end
   desc 'create required gemset'
-  task :build do 
-    puts `rvm gemset $FLOWBOX_GEMSET_CURRENT`
+  task :gemset do 
+    puts `rvm use $FLOWBOX_RUBY_CURRENT`
+    puts `rvm gemset create $FLOWBOX_GEMSET_CURRENT`
   end
-
 end
 
+# FlowBox C++ ------------------------------------------------------------------
 namespace :libflowbox do
+  libflowbox_pr = "libflowbox"
+  libflowbox_lib_pr = "#{libflowbox_pr}/lib"
 
-  directory "libflowbox/lib"
-
+  directory libflowbox_lib_pr
   desc 'clone libflowbox from github (over ssh)'
   task :clone do 
     puts "fetch the source from github"
     system "git clone git@github.com:FlowBox/libflowbox.git"
   end
-
   desc 'prepare the Makefile using cmake'
-  task :cmake => ["libflowbox/lib"] do 
+  task :cmake => [libflowbox_lib_pr] do 
     puts "call cmake"
-    puts `cd libflowbox/lib && cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug ../`
+    Dir.chdir(libflowbox_lib_pr) do
+      puts `cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug ../`
+    end
   end
-
   desc 'build the libflowbox'
-  task :build => ["libflowbox/lib", :clean, :cmake] do
-    puts "build libflowbox"
-    sh 'cd libflowbox/lib; make all'
+  task :build => [libflowbox_lib_pr] do
+    Dir.chdir(libflowbox_lib_pr) do
+      puts `make all`
+    end
   end
-
   task :clean do
-    puts "clean up libflowbox -- call make clean"
-    if File.exists?("libflowbox/lib/Makefile") == true
-      sh 'cd libflowbox/lib; make clean'
+    if File.exists?(libflowbox_lib_pr+'Makefile')
+      Dir.chdir(libflowbox_lib_pr) do
+       puts `make clean`
+      end
     end
   end
   task :clobber do
-    puts "clobber libflowbox -- remove all cmake stuff"
-    if File.("libflowbox/lib").exists?()
+    if File.exists?(libflowbox_lib_pr+'Makefile') 
+      throw "TODO"
+    end
+  end
+  desc 'git status'
+  task :git_status do
+    git_status(libflowbox_pr)
+  end
+end
+# FlowBox Ruby -----------------------------------------------------------------
+namespace :flowboxruby do
+  flowboxruby_pr = 'flowbox-ruby'
+  desc 'clone flowbox-ruby from github (over ssh)'
+  task :clone do 
+    puts "fetch the source from github"
+    `git clone git@github.com:FlowBox/flowbox-ruby.git`
+  end
+  desc 'get dependencies (bundler)'
+  task :bundle do 
+    Dir.chdir(flowboxruby_pr) do
+      `bundle install`
+    end
+  end
+  task :clean do
+    Dir.chdir(flowboxruby_pr) do
+      `rake clean`
+    end
+  end
+  task :clobber do
+    Dir.chdir(flowboxruby_pr) do
+      `rake clobber`
+    end
+  end
+  desc 'build flowbox-ruby'
+  task :build do 
+    Dir.chdir(flowboxruby_pr) do
+      `rake`
+    end
+  end
+  desc 'git status'
+  task :git_status do
+    git_status(flowboxruby_pr)
+  end
+end 
+# FlowBox Rails ----------------------------------------------------------------
+namespace :flowboxrails do
+  desc 'clone flowbox-rails from github (over ssh)'
+  task :clone do 
+    puts "fetch the source from github"
+    system "git clone git@github.com:FlowBox/flowbox-rails.git"
+  end
+  desc 'git status'
+  task :git_status do
+    Dir.chdir("flowbox-ruby") do
+      puts "-- FlowBox Rails --"+'-'*61
+      puts `git status`
+    end
+  end
+end
+# Applications  ----------------------------------------------------------------
+namespace :applications do
+# We will use this method to add the rake files of the different applications
+  Dir[File.join(File.dirname(__FILE__), 'applications','*', 'Rakefile')].each do |path| 
+    project_name =  File.basename(File.dirname(path)).gsub(/-/,'')
+    namespace project_name.to_sym do
+      load path
     end
   end
 end
 
-namespace :flowboxruby do
-
-  desc 'clone flowbox-ruby from github (over ssh)'
-  task :clone do 
-    puts "fetch the source from github"
-    system "git clone git@github.com:FlowBox/flowbox-ruby.git"
+# ALL JOBS  --------------------------------------------------------------------
+desc 'clean FlowBox'
+task :clean => ['libflowbox:clean','flowboxruby:clean'] do 
+end
+desc 'build FlowBox'
+task :build => ['libflowbox:build', 'flowboxruby:build'] do 
+end
+desc 'git status'
+task :git_status => ['libflowbox:git_status', 'flowboxruby:git_status', 'flowboxrails:git_status'] do 
+  Dir.chdir("flowbox-ruby") do
+    puts "-- FlowBox DEV --"+'-'*63
+    puts `git status`
   end
-
-  desc 'get dependencies (bundler)'
-  task :bundle do 
-    puts 'install dependencies using bundler'
-    puts `cd flowbox-ruby && bundle install`
-  end
-
-  desc 'build flowbox-ruby'
-  task :build do 
-    puts 'build flowbox-ruby'
-    system "cd flowbox-ruby && rake clean && rake clobber && rake"
-  end
-end 
-namespace :applications do 
-
 end
 
-
-# We will use this method to add the rake files of the different applications
-# Dir.glob(File.join(File.dirname(__FILE__), '**', 'Rakefile')).each do |tasks|
-#  load tasks
-# end
+task :default => [:build] do
+end
