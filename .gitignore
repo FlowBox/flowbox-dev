@@ -1,0 +1,6 @@
+libflowbox
+flowbox-ruby
+flowbox-rails
+applications/*
+!applications/README.md
+*~

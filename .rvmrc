@@ -1,0 +1,28 @@
+# SET FLOWBOX BASH VARIABLES
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+FLOWBOX_RUBY_CURRENT="ruby-1.9.3-p286"
+FLOWBOX_GEMSET_CURRENT="flowbox"
+FLOWBOX_CC="$DIR/libflowbox"
+FLOWBOX_RUBY="$DIR/flowbox-ruby"
+FLOWBOX_RAILS="$DIR/flowbox-rails"
+
+export FLOWBOX_RUBY_CURRENT
+export FLOWBOX_GEMSET_CURRENT
+export FLOWBOX_CC
+export FLOWBOX_RUBY
+export FLOWBOX_RAILS
+
+if echo "$LD_LIBRARY_PATH" | grep -q libflowbox; then
+   LD_LIBRARY_PATH=$LD_LIBRARY_PATH    
+else
+   LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DIR/libflowbox/lib"
+fi
+export LD_LIBRARY_PATH
+
+
+# CONFIGURE RVM 
+rvm $FLOWBOX_RUBY_CURRENT@$FLOWBOX_GEMSET_CURRENT
+
