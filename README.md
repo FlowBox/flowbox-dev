@@ -46,21 +46,21 @@ of 'git' and 'git flow'. The following readers are recommended:
 
 Now its time to checkout the helper scripts and change into the top folder.
 
-  $ git clone git://github.com/FlowBox/flowbox-dev.git
-  $ git clone https://github.com/FlowBox/flowbox-dev.git
-  $ cd flowbox-dev
-  $ git checkout -b develop origin/develop
+    $ git clone git://github.com/FlowBox/flowbox-dev.git
+    $ git clone https://github.com/FlowBox/flowbox-dev.git
+    $ cd flowbox-dev
+    $ git checkout -b develop origin/develop
 
 Since multiple persons will commit code to the project, we should 
 configure git with the right personal contact data and rebase settings:
 
-  $ git config user.name "Your Name"
-  $ git config user.email yourmail@thisdomain.com
-  $ git config branch.autosetuprebase always
+    $ git config user.name "Your Name"
+    $ git config user.email yourmail@thisdomain.com
+    $ git config branch.autosetuprebase always
 
 Lest init the git-flow (accept all default proposals) and switch back to master
-  $ git flow init
-  $ git checkout master
+    $ git flow init
+    $ git checkout master
 
 Now we are ready for the next step.
 
@@ -72,8 +72,8 @@ side. Typically we use a rvm user installation.
 
 This includes the following steps:
 
-  $ sudo apt-get install curl subversion
-  $ \curl -L https://get.rvm.io | bash -s stable --ruby 
+    $ sudo apt-get install curl subversion
+    $ \curl -L https://get.rvm.io | bash -s stable --ruby 
 
 Now we have to fix some gnome-terminal problems related to Ubuntu. Just follow 
 the instructions of [rvm integration gnome terminal](https://rvm.io/integration/gnome-terminal/).
@@ -81,22 +81,23 @@ Close the genome-terminal and open a new one. Switch back into the flobox-dev
 folder. Now you are asked to tun on rvm on this folder. Accept. 
 
 Install the proposed ruby version by first install the required dependencies
-  $ rvm requirements
+    $ rvm requirements
 
 Most likely you have to install the following packages (Ubuntu 12.10)
-  $ sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion pkg-config
+    $ sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion pkg-config
 
 Now install the propose ruby and prepare the gemset
-  $ rvm install ruby-1.9.3-p286
-  $ rvm current ruby-1.9.3-p286
-  $ rvm gemset create flowbox
-  $ gem install rake
+    $ rvm install ruby-1.9.3-p286
+    $ rvm current ruby-1.9.3-p286
+    $ rvm gemset create flowbox
+    $ gem install rake
 
 ### The Rake File
+Now we are ready to use Rake to build the core libs of FlowBox. 
+    $ rake dependencies
+    $ rake build
 
 
 
-## Git Trouble shooting
-* http://www.scottw.com/setting-up-git-flow-remote
 
 

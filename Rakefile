@@ -31,8 +31,8 @@ namespace :libflowbox do
       puts `git flow init -d`
     end
   end
-  desc 'install required packets'
-  task :requirements do
+  desc 'install required dev libs'
+  task :dependencies do
     #raise 'Must run as root: sudo rake this-task' unless Process.uid == 0
     system('sudo apt-get install cmake liblz-dev libbz2-dev')
   end
@@ -79,7 +79,7 @@ namespace :flowboxruby do
       puts `git flow init -d`
     end
   end
-  desc 'get dependencies (bundler)'
+  desc 'install required gem packets'
   task :bundle do 
     Dir.chdir(flowboxruby_pr) do
       `bundle install`
@@ -147,6 +147,10 @@ task :clean => ['libflowbox:clean','flowboxruby:clean'] do
 end
 desc 'build FlowBox'
 task :build => ['libflowbox:build', 'flowboxruby:build'] do 
+end
+
+desc 'install required dev libs for FlowBox'
+task :dependencies => ['libflowbox:dependencies', 'flowboxruby:build'] do 
 end
 
 desc 'git status'
