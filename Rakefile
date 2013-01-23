@@ -29,6 +29,7 @@ namespace :libflowbox do
       puts `git config branch.autosetuprebase always`
       puts `git checkout -b develop origin/develop`
       puts `git flow init -d`
+      puts `git checkout master`
     end
   end
   desc 'install required dev libs'
@@ -44,7 +45,7 @@ namespace :libflowbox do
     end
   end
   desc 'build the libflowbox'
-  task :build => [libflowbox_lib_pr] do
+  task :build => [libflowbox_lib_pr, :cmake] do
     Dir.chdir(libflowbox_lib_pr) do
       puts `make all`
     end
@@ -77,22 +78,23 @@ namespace :flowboxruby do
       puts `git config branch.autosetuprebase always`
       puts `git checkout -b develop origin/develop`
       puts `git flow init -d`
+      puts `git checkout master`
     end
   end
   desc 'install required gem packets'
-  task :bundle do 
+  task :dependencies do 
     Dir.chdir(flowboxruby_pr) do
-      `bundle install`
+      puts `bundle install`
     end
   end
   task :clean do
     Dir.chdir(flowboxruby_pr) do
-      `rake clean`
+      puts `rake clean`
     end
   end
   task :clobber do
     Dir.chdir(flowboxruby_pr) do
-      `rake clobber`
+      puts `rake clobber`
     end
   end
   desc 'build flowbox-ruby'
@@ -116,6 +118,7 @@ namespace :flowboxrails do
       puts `git config branch.autosetuprebase always`
       puts `git checkout -b develop origin/develop`
       puts `git flow init -d`
+      puts `git checkout master`
     end
   end
   desc 'git status'
@@ -150,7 +153,7 @@ task :build => ['libflowbox:build', 'flowboxruby:build'] do
 end
 
 desc 'install required dev libs for FlowBox'
-task :dependencies => ['libflowbox:dependencies', 'flowboxruby:build'] do 
+task :dependencies => ['libflowbox:dependencies', 'flowboxruby:dependencies'] do 
 end
 
 desc 'git status'
