@@ -17,60 +17,24 @@ def git_status(path_r)
   end
 end
 
-# SYSTEM -----------------------------------------------------------------------
-namespace :system do 
-  task :requirements do 
-    throw "TODO"
-  end
-end
-
-# RVM --------------------------------------------------------------------------
-# FlowBox relies on ruby version manager (https://rvm.io)
-namespace :rvm do
-  desc 'rvm requirements'
-  task :requirements do 
-    req_a = ['bash', 'awk', 'sed', 'grep']
-    req_a << ['which', 'ls', 'cp', 'tar']
-    req_a << ['curl', 'gunzip', 'bunzip2']
-    req_a << ['git', 'subversion']
-    req_a.each do |req|
-      req_p = `which #{req}`.strip()
-      throw 'rvm requires #{req}. Install it first (see https://rvm.io)' if req_p == nil
-    end
-  end
-  desc 'install rvm'
-  task :installation => [:requirements] do 
-    # 1) check rvm is not already installed
-    rvm_p = `which rvm`.strip()
-    if !(rvm_p =~ /home*rvm/)
-      throw 'rvm is already installed'
-    end
-    # 2) check we are NOT root (user-land installation)
-    throw 'rvm should be installed as non-root users' if Process.uid == 0
-    # 3) fetch and install rvm
-    `\curl -L https://get.rvm.io | bash -s stable --ruby`
-  end
-  desc 'build the required ruby'
-  task :ruby do 
-    puts `rvm install $FLOWBOX_RUBY_CURRENT`
-  end
-  desc 'create required gemset'
-  task :gemset do 
-    puts `rvm use $FLOWBOX_RUBY_CURRENT`
-    puts `rvm gemset create $FLOWBOX_GEMSET_CURRENT`
-  end
-end
-
 # FlowBox C++ ------------------------------------------------------------------
 namespace :libflowbox do
   libflowbox_pr = "libflowbox"
   libflowbox_lib_pr = "#{libflowbox_pr}/lib"
-
   directory libflowbox_lib_pr
-  desc 'clone libflowbox from github (over ssh)'
-  task :clone do 
-    puts "fetch the source from github"
-    system "git clone git@github.com:FlowBox/libflowbox.git"
+  desc 'clone libflowbox from github'
+  task :clone do
+    puts `git clone https://github.com/FlowBox/libflowbox.git`
+    Dir.chdir(libflowbox_pr) do
+      puts `git config branch.autosetuprebase always`
+      puts `git checkout -b develop origin/develop`
+      puts `git flow init -d`
+    end
+  end
+  desc 'install required packets'
+  task :requirements do
+    #raise 'Must run as root: sudo rake this-task' unless Process.uid == 0
+    system('sudo apt-get install cmake liblz-dev libbz2-dev')
   end
   desc 'prepare the Makefile using cmake'
   task :cmake => [libflowbox_lib_pr] do 
@@ -102,13 +66,18 @@ namespace :libflowbox do
     git_status(libflowbox_pr)
   end
 end
+
 # FlowBox Ruby -----------------------------------------------------------------
 namespace :flowboxruby do
   flowboxruby_pr = 'flowbox-ruby'
   desc 'clone flowbox-ruby from github (over ssh)'
-  task :clone do 
-    puts "fetch the source from github"
-    `git clone git@github.com:FlowBox/flowbox-ruby.git`
+  task :clone do
+    puts `git clone https://github.com/FlowBox/flowbox-ruby.git`
+    Dir.chdir(flowboxruby_pr) do
+      puts `git config branch.autosetuprebase always`
+      puts `git checkout -b develop origin/develop`
+      puts `git flow init -d`
+    end
   end
   desc 'get dependencies (bundler)'
   task :bundle do 
@@ -129,7 +98,7 @@ namespace :flowboxruby do
   desc 'build flowbox-ruby'
   task :build do 
     Dir.chdir(flowboxruby_pr) do
-      `rake`
+      puts `rake`
     end
   end
   desc 'git status'
@@ -139,10 +108,15 @@ namespace :flowboxruby do
 end 
 # FlowBox Rails ----------------------------------------------------------------
 namespace :flowboxrails do
-  desc 'clone flowbox-rails from github (over ssh)'
-  task :clone do 
-    puts "fetch the source from github"
-    system "git clone git@github.com:FlowBox/flowbox-rails.git"
+  flowboxrails_pr = 'flowbox-rails'
+  desc 'clone flowbox-rails from github'
+  task :clone do
+    puts `git clone https://github.com/FlowBox/flowbox-rails.git`
+    Dir.chdir(flowboxrails_pr) do
+      puts `git config branch.autosetuprebase always`
+      puts `git checkout -b develop origin/develop`
+      puts `git flow init -d`
+    end
   end
   desc 'git status'
   task :git_status do
@@ -164,12 +138,17 @@ namespace :applications do
 end
 
 # ALL JOBS  --------------------------------------------------------------------
+desc 'clone FlowBox'
+task :clone => ['libflowbox:clone', 'flowboxruby:clone', 'flowboxrails:clone'] do
+end
+
 desc 'clean FlowBox'
 task :clean => ['libflowbox:clean','flowboxruby:clean'] do 
 end
 desc 'build FlowBox'
 task :build => ['libflowbox:build', 'flowboxruby:build'] do 
 end
+
 desc 'git status'
 task :git_status => ['libflowbox:git_status', 'flowboxruby:git_status', 'flowboxrails:git_status'] do 
   Dir.chdir("flowbox-ruby") do
@@ -180,3 +159,4 @@ end
 
 task :default => [:build] do
 end
+
