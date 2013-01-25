@@ -17,8 +17,6 @@ Happy coding and enjoy life!
 Best, 
 Dominik
 
-http://daringfireball.net/projects/markdown/basics
-
 ## Installation Guide
 
 The installation guide helps you to setup the basic programs required 

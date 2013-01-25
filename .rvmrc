@@ -15,8 +15,26 @@ export FLOWBOX_CC
 export FLOWBOX_RUBY
 export FLOWBOX_RAILS
 
+
 if echo "$LD_LIBRARY_PATH" | grep -q libflowbox; then
-   LD_LIBRARY_PATH=$LD_LIBRARY_PATH    
+  # at least one flowbox lib path is present
+  IFS=":"
+  clean_lib_path=()
+  for item in $LD_LIBRARY_PATH; do
+    echo $item
+    if echo "$item" | grep -q "$DIR/libflowbox/lib"; then
+      clean_lib_path+=($item)
+    elif echo "$item" | grep -q "libflowbox/lib"; then
+      # ignore other flowbox lib paths.
+      true
+    else
+      # keep rest
+      clean_lib_path+=($item)
+    fi
+  done
+  FOOJOIN="${clean_lib_path[*]}"
+  echo "$FOOJOIN"
+  LD_LIBRARY_PATH="$FOOJOIN"  
 else
    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DIR/libflowbox/lib"
 fi
