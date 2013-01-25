@@ -3,4 +3,7 @@ flowbox-ruby
 flowbox-rails
 applications/*
 !applications/README.md
+!applications/flow_to_txt_cc
 *~
+*.o
+*.exe
