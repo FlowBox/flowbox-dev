@@ -231,7 +231,7 @@ FlowToTxt::Statistics FlowToTxt::stat_get(void){
     // waiting was not successful (interrupt?)
     stat.set_valid(false);
   } else {
-    // critical Section -- pop data
+    // critical section -- pop data
     if(sem_wait(&stat_critical_section_sem_) != 0){
       // semaphore failed, abort
       throw FlowBoxE("semaphore: stat_critical_section_sem_ failed",__FILE__, __LINE__);
@@ -275,77 +275,45 @@ void FlowToTxt::data_process(
   FlowContainer::iterator end
 ){
   uint64_t flow_c = 0;
-  static uint64_t oldStop = 0;
-
-  // walk over flows
   while(flow != end) {
-
-    if(flow->valid_ == true) { // process only valid data
-     if( flow->stop_s_+1 < flow->start_s_  ){
-         std::cout<< "Flow start after flow stop by (sec): " <<
-		 (flow->stop_s_ - flow->start_s_) << std::endl;
-     }
-     if( flow->stop_s_ > oldStop  ){
-         std::cout << flow->stop_s_ <<  "," << oldStop << std::endl;
-	 std::cout << flow->to_s() <<std::endl;
-         oldStop = flow->stop_s_;
-     }
-     if( flow->stop_s_+60 < oldStop ){
-         //std::cout << "WARNING: Flow with stop time more than 60 secs older than newest stop time seen!\n";
-         //std::cout << flow->stop_s_ << std::endl;
-	 //std::cout << flow->to_s() <<std::endl;
-     }
-     // packet time: stat switch?
- 
-     if(flow->start_s_ > stat_export_next_s_) {
-        stat_export(flow->start_s_);
-     };
-     flow_c++;
+    if(flow->valid_ == true) { // process only valid flow data
+	    std::cout << flow->to_s() << std::endl;
+      flow_c++;
     };
     flow++;
   }; // while
   stat_current_.add_flows(flow_c);
 };
 void FlowToTxt::data_process(void){
+  obs_push("data_process -- started");
   FlowContainer* fc;
-
-  std::cout << "FlowToTxt::data_process -- started" << std::endl;
-  std::cout.flush();
-
-  while(true) {
-
+  while (true) {
     // do we have some a new config?
-    if(conf_available_)
+    if (conf_available_)
       conf_pop();
 
     // ups no input buffer ...
-    if(data_input_ == NULL){
-      std::cout << "FlowToTxt::data_thread_main -- empty data_input_ retry in (5)" << std::endl;
+    if (data_input_ == NULL) {
+      obs_push("data_thread_main -- empty data_input_");
       sleep(5);
       continue;
     }
 
     // blocking wait on some input
-    //std::cout << "FlowToTxt::data_thread_main --   in: fc = data_input_->pop();" << std::endl;
     fc = data_input_->pop();
-    //std::cout << "FlowToTxt::data_thread_main --   back: fc = data_input_->pop();" << std::endl;
-    //std::cout.flush();
 
-    // since the locking wait can be interrupted 
-    // by system interrupts, timeouts or signals
-    // we have to check if there is the pointer 
-    // is valid.
-    if(fc == NULL) {
+    // semaphore can be interrupted by system interrupts, timeouts or signals
+    // we have to check if this pointer is valid.
+    if (fc == NULL) {
       // invalid data but WHY?
 
       // FIN: is the processing over?
-      if(data_input_->is_state_fin()) {
-
+      if (data_input_->is_state_fin()) {
         // push/flush our internal results
         // NOP
 
         // forward the signal to the next buffer (if possible)
-        if(data_output_ != NULL) {
+        if (data_output_ != NULL) {
           data_output_->signal_fin();
         }
 
@@ -353,27 +321,27 @@ void FlowToTxt::data_process(void){
         // ... and say goodbye
         break;
 
-      // unknown reason
+        // unknown reason
       } else {
-          // WTF ??
-          std::cout << "I've got an empty container pointer without good reason !!" << std::endl;
-          continue;
+        // WTF ??
+        obs_push("data_thread_main -- empty container?!?");
+        continue;
       }
     } else {
       // WORK:
       data_process(fc->begin(), fc->end_used());
 
       // forward the buffer to the next element
-      if(data_output_ != NULL) {
+      if (data_output_ != NULL) {
         data_output_->push(fc);
       } else {
         data_container_pool_->push(fc);
       }
     }
-  } // while(true)
+  }// while(true)
 
   // ... say goodby
   // clean up
   // NOP
-  //std::cout << "FlowToTxt::data_thread_main -- finished" << std::endl;
+  obs_push("data_thread_main -- finished");
 };
