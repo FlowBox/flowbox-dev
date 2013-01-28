@@ -1,0 +1,91 @@
+################################################################################
+# FLOW TO TEXT APPLICATION BASED ON FLOWBOX
+################################################################################
+# Author: Dominik Schatzmann
+application_name = 'flowtotxt'
+
+## BUILD the extensions ########################################################
+# see 'Add Rake tasks' @ http://guides.rubygems.org/c-extensions/ 
+# rule to build the extension: this says that the extension should be rebuilt
+# after any change to the files in ext
+file "lib/#{application_name}/#{application_name}.so" => Dir.glob("ext/#{application_name}/*{.rb,.c}") do
+  Dir.chdir("ext/#{application_name}") do
+    # this does essentially the same thing
+    # as what RubyGems does
+    ruby "extconf.rb"
+    sh "make"
+  end
+  cp "ext/#{application_name}/#{application_name}.so", "lib/#{application_name}"
+end
+desc "Compile the extension"
+task :compile => "lib/#{application_name}/#{application_name}.so"
+
+## Run the TESTs  ##############################################################
+# see "Recipe 19.1. Automatically Running Unit Tests"@ 'RubyCookbook' 
+require 'rake/testtask'
+Rake::TestTask.new('test-this') do |t|
+  t.libs << 'test'
+  t.test_files = ['test/test_this.rb']
+  t.warning = true
+end
+Rake::TestTask.new('test-that') do |t|
+  t.libs << 'test'
+  t.test_files = ['test/test_that.rb']
+  t.warning = true
+end
+desc "Run tests"
+task :test => "lib/#{application_name}/#{application_name}.so"
+task :test => ['test-this', 'test-that']
+task :default => :test
+
+## CLEAN UP  ###################################################################
+# see "Recipe 19.3. Cleaning Up Generated Files"@ 'RubyCookbook' 
+require 'rake/clean'
+
+# Include the "pkg" and "doc" directories and their contents.
+CLOBBER.include('pkg', 'doc')
+# Include the "pkg" and "doc" directories and their contents.
+
+# Include InstalledFiles and .config: files created by setup.rb.
+# Include temporary files created during test run.
+CLEAN.include('ext/**/*{.o,.log,.so}')
+CLEAN.include('lib/**/*.so')
+CLEAN.include('ext/**/Makefile')
+CLEAN.include('InstalledFiles', '.config', 'test/**/*.tmp')
+
+## Build the GEM package #######################################################
+# see "Recipe 19.4. Automatically Building a Gem"@ 'RubyCookbook'
+# see http://guides.rubygems.org/
+require 'rubygems'
+require 'rubygems/package_task'
+spec = Gem::Specification.new do |s|
+  s.platform    = Gem::Platform::RUBY  # probably too optimistic
+  s.name        = 'flowbox-flow-to-txt'
+  s.version     = '1.0.0'
+  s.date        = '2012-02-28'
+  s.summary     = "This is my Flow to Txt Application based on FlowBox"
+  s.description = "Flow To Txt App based on FlowBox is just a simple dummy app"
+  s.authors     = ["Dominik Schatzmann"]
+  s.email       = 'schadomi@gmail.com'
+  s.homepage    = 'http://www.csg.ethz.ch/people/schadomi'
+  # s.files = Dir.glob("**/**/**")
+  s.files       = Dir.glob('lib/**/*.rb') + 
+                  Dir.glob('ext/**/*.{cc,h,rb}') +
+                  Dir.glob('test/**/**')
+
+  s.extensions << 'ext/#{application_name}/extconf.rb'
+
+  s.has_rdoc = false
+  s.required_ruby_version = '>= 1.9.2'
+
+  s.test_files = Dir.glob("test/test_*.rb")
+
+  # currently we dont have any executables
+  s.executables = ['main']
+
+end
+Gem::PackageTask.new(spec) do |pkg|
+  pkg.need_zip = true
+  pkg.need_tar = true
+end
+

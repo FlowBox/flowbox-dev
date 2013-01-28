@@ -5,6 +5,7 @@ applications/*
 !applications/README.md
 !applications/flow_to_txt_cc
 !applications/flow_to_txt_rb
+!applications/flow_to_txt_cc_rb
 !applications/ethz-extract_flowexporter
 *~
 *.o

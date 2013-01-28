@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+################################################################################
+# Flow To Txt                                                                  #
+################################################################################
+# 
+# Just an example to show who you can build your own application using the 
+# the LOCAL FlowBox installation using the Ruby Wrapper.
+#
+# 
+# Copyright (c) 2011-13, Dominik Schatzmann
+
+# get the FLOWBOX_CC and FLOWBOX_RUBY
+$LOAD_PATH << "#{ENV['FLOWBOX_CC']}/lib"
+$LOAD_PATH << "#{ENV['FLOWBOX_RUBY']}/lib"
+require 'flowbox'
+
+# get my own stuff
+$LOAD_PATH << File.join(File.dirname(__FILE__), '../lib')
+require 'flowtotxt'
+
+# Tell ruby to stuff, if something goes wrong...
+Thread.abort_on_exception = true 
+
+## User INPUT ##################################################################
+if ARGV.size != 1 or File.exists?(ARGV[0]) == false
+	puts "use ./this /path/to/flows"
+	exit(-1)
+end 
+
+
+## Lets stick the stuff together ###############################################
+# a buffer to interconnect my FlowToTxt module with the reader
+buffer_reader_flowtotxt = FlowBox::Core::FlowContainerBuffer.new()
+
+# PARSER #######################################################################
+# A unit that reads flows from compressed files
+#-------------------------------------------------------------------------------
+# If you don't know the exporters of your network -- you can use the 
+# 'extract_flow_exporter' (<git_flowbox>/applications/extract_flow_exporter)
+# to extract the required info
+
+# flow exporters
+#throw "update flow exporters first"
+
+parser = FlowBox::Driver::Console::Parser.new()
+parser.configure(
+
+  :format => 'netflow',
+
+  :stat_interval_s => 30, # interval between statistic export
+  :export_time_window_s => 300, # max accepted interval between two flows (outage detection)
+  :source => 'csgfile',
+
+  :csgfile_input => ARGV[0], # where are the flow files
+  :csgfile_scan_interval_s => -1, # how often should we poll the folder for new files (-1 == never)
+  :csgfile_remove_files_after => false, # should files be deleted after processing
+
+  # output buffer (use "NULL" for end of chain)
+  :output => buffer_reader_flowtotxt,
+
+  :flow_exporters => [
+    # Flow exporter of router 1
+    { :id => 1,
+      :address => "192.168.0.1",
+      :observation_domain => 0,
+      :format => 9
+    },
+    { :id => 2,
+      :address => "192.168.0.1",
+      :observation_domain => 513,
+      :format => 9
+    }
+  ]
+)
+
+# FlowToTxt ########################################################################
+# Your own module
+#-------------------------------------------------------------------------------
+# We use a Console Driver --> output will be sent to the console
+# see 'lib/driver/flowtotxt_module.rb'
+flowtotxt = FlowToTxt::Driver::Console::FlowToTxtModule.new()
+flowtotxt.configure(
+
+  # :input => Specifiy the input buffer
+  #  => FlowBox::Core::FlowContainerBuffer
+  :input => buffer_reader_flowtotxt,
+
+  # :output => Specifiy the output buffer
+  #  => FlowBox::Core::FlowContainerBuffer
+  #  => 'NULL' End of Chain
+  :output => 'NULL', 
+
+  # :scan_interval_s => How often should we report the statistics?
+  :stat_interval_s => 30
+)
+
+## starte the queue
+sleep(2) # wait ... just to make sure that all configs are already parsed
+
+flowtotxt.start()
+parser.start()
+
+# wait till all threads are finished
+while  parser.finished() == false or flowtotxt.finished() == false
+  sleep(5)
+  puts Time.now
+end
+
+sleep(2)
+puts "Finished"
+
+
