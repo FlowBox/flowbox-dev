@@ -4,6 +4,7 @@ flowbox-rails
 applications/*
 !applications/README.md
 !applications/flow_to_txt_cc
+!applications/flow_to_txt_rb
 !applications/ethz-extract_flowexporter
 *~
 *.o
