@@ -21,7 +21,6 @@ if echo "$LD_LIBRARY_PATH" | grep -q libflowbox; then
   IFS=":"
   clean_lib_path=()
   for item in $LD_LIBRARY_PATH; do
-    echo $item
     if echo "$item" | grep -q "$DIR/libflowbox/lib"; then
       clean_lib_path+=($item)
     elif echo "$item" | grep -q "libflowbox/lib"; then
@@ -33,7 +32,6 @@ if echo "$LD_LIBRARY_PATH" | grep -q libflowbox; then
     fi
   done
   FOOJOIN="${clean_lib_path[*]}"
-  echo "$FOOJOIN"
   LD_LIBRARY_PATH="$FOOJOIN"  
 else
    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DIR/libflowbox/lib"
