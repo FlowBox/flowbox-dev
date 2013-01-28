@@ -35,7 +35,7 @@ namespace :libflowbox do
   desc 'install required dev libs'
   task :dependencies do
     #raise 'Must run as root: sudo rake this-task' unless Process.uid == 0
-    system('sudo apt-get install cmake liblz-dev libbz2-dev')
+    #system('sudo apt-get install cmake liblz-dev libbz2-dev')
   end
   desc 'prepare the Makefile using cmake'
   task :cmake => [libflowbox_lib_pr] do 

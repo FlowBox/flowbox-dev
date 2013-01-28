@@ -84,9 +84,9 @@ Install the proposed ruby version by first install the required dependencies
 
     $ rvm requirements
 
-Most likely you have to install the following packages (Ubuntu 12.10)
+Most likely you have to install the following packages (Ubuntu 12.10, Debian 6.x )
 
-    $ sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion pkg-config
+    $ sudo apt-get install build-essential openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev automake libtool bison subversion pkg-config cmake liblz-dev libbz2-dev
 
 Now install the propose ruby and prepare the gemset. 
 ATTENTION: Replace the X.X.X with the proposed version.
