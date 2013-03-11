@@ -1,11 +1,27 @@
 #encoding: utf-8
-################################################################################
-# FlowBox
-################################################################################
+########################################################################
+# FLOWBOX DEV
+########################################################################
+# Copyright 2011-13 Dominik Schatzmann (schadomi@gmail.com)
 #
-# Here we define some common task that will simplify your job
+# This file is part of FlowBox. FlowBox is free software: you can redistribute
+# it and/or modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
 #
-# Author: Dominik Schatzmann
+# FlowBox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with FlowBox.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author: Dominik Schatzmann <schadomi@gmail.com>
+#
+# Here we define some common task that will simplify our job as 
+# flowbox developper.
+#
 
 # HELPER -----------------------------------------------------------------------
 def git_status(path_r)
@@ -35,7 +51,10 @@ namespace :libflowbox do
   desc 'install required dev libs'
   task :dependencies do
     #raise 'Must run as root: sudo rake this-task' unless Process.uid == 0
-    #system('sudo apt-get install cmake liblz-dev libbz2-dev')
+    #system('sudo apt-get install cmake liblz-dev libbz2-dev cmake zlib1g-dev')
+    # TOFIX
+    # ISSUE 2:use the helper functions 'have_library' of 'mkmf' to check if 
+    # the required libs are installed. 
   end
   desc 'prepare the Makefile using cmake'
   task :cmake => [libflowbox_lib_pr] do 

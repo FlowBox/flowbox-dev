@@ -30,6 +30,7 @@ This installation guide is tested for:
 
 * Ubuntu 12.04
 * Ubuntu 12.10
+* Debian 6.x
 
 ### Version Controlling System: GIT
 As a first step we have to install git and git-flow. Open a console (CTRL-L) 
@@ -58,6 +59,9 @@ ensure that git uses rebase by default.
     $ cd flowbox-dev
     $ git checkout -b develop origin/develop
     $ git config branch.autosetuprebase always
+    $ git config branch.master.rebase true
+    $ git config branch.develop.rebase true
+
 
 After that, we have to configure 'git-flow' (accept all default proposals) and switch back to master
 
@@ -110,6 +114,7 @@ Now we are ready to use Rake to build the core libs of FlowBox.
 Probably you have recognized, that 'flowbox-dev' provides a folder called 
 'application'. Thats exactly the place to seed our application.
 
+TODO
 
 
 
